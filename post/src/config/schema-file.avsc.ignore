@@ -1,0 +1,25 @@
+[
+    {
+      "type": "record",
+      "name": "PostChangeEvent",
+      "namespace": "post_db_dev_server.public.post",
+      "fields": [
+        {"name": "before", "type": ["null", "Post", "com.example.Post"]},
+        {"name": "after", "type": ["null", "Post", "com.example.Post"]},
+        {"name": "op", "type": "string"},
+        {"name": "ts_ms", "type": "long"}
+      ]
+    },
+    
+    {
+      "type": "record",
+      "name": "Post",
+      "namespace": "post_db_dev_server.public.post",
+      "fields": [
+        {"name": "id", "type": "int"},
+        {"name": "title", "type": "string"},
+        {"name": "message", "type": "string"}
+      ]
+    }
+]
+  

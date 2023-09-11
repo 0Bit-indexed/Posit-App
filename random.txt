@@ -1,0 +1,46 @@
+npm init
+npm i dotenv express cors
+npm i nodemon -D
+
+npm run dev
+
+npm install express-http-proxy --save
+
+need to: pull postgresql, redis, node, nginx,  
+
+psql -h localhost -p 5432 -U postgres -W
+
+curl -X POST -H "Content-Type: application/json" --data @./post/src/config/debezium.json http://localhost:8083/connectors
+
+//curl -X POST -H "Content-Type: application/json" --data @debezium.json http://localhost:8083/connectors
+
+docker exec -it kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic post_db_dev_server.public.post --from-beginning
+
+//docker exec -it kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic my-postgres-server.public.posts --from-beginning
+
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     --data "@./post/src/config/schema-file.avsc" \
+     http://localhost:8081/subjects/post_db_dev_server.public.post.Envelope-value/versions
+
+
+//curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+    --data '{"schema": "{\"type\":\"record\",\"name\":\"Post\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"title\",\"type\":\"string\"}]}"}' \
+    http://localhost:8081/subjects/post_db_dev_server.public.post-value/versions
+
+
+docker exec -it kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic post_db_dev_server.public.post --from-beginning
+
+kafka-topics --bootstrap-server kafka:9092 --list
+kafka-topics --bootstrap-server kafka:9092 --describe --topic post_db_dev_server.public.post.Envelope
+
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     --data '{"schema": "{\"type\":\"record\",\"namespace\":\"post_db_dev_server.public.post\",\"name\":\"Envelope\",\"fields\":[{\"name\":\"before\",\"type\":{\"type\":\"record\",\"name\":\"ValueBefore\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"title\",\"type\":\"string\"},{\"name\":\"message\",\"type\":\"string\"}]},\"default\":null},{\"name\":\"after\",\"type\":{\"type\":\"record\",\"name\":\"ValueAfter\",\"fields\":[{\"name\":\"id\",\"type\":\"int\"},{\"name\":\"title\",\"type\":\"string\"},{\"name\":\"message\",\"type\":\"string\"}]},\"default\":null},{\"name\":\"source\",\"type\":{\"type\":\"record\",\"name\":\"Source\",\"fields\":[{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"connector\",\"type\":\"string\"},{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"ts_ms\",\"type\":\"long\"},{\"name\":\"snapshot\",\"type\":\"string\"},{\"name\":\"db\",\"type\":\"string\"},{\"name\":\"schema\",\"type\":\"string\"},{\"name\":\"table\",\"type\":\"string\"},{\"name\":\"txId\",\"type\":[\"null\",\"long\"],\"default\":null},{\"name\":\"lsn\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"xmin\",\"type\":[\"null\",\"long\"],\"default\":null}]}}},{\"name\":\"op\",\"type\":\"string\"},{\"name\":\"ts_ms\",\"type\":\"long\"}]}" }' \
+     http://localhost:8081/subjects/post_db_dev_server.public.post.Envelope-value/versions
+
+CREATE ROLE debezium WITH LOGIN PASSWORD 'password' SUPERUSER;
+ALTER ROLE debezium WITH REPLICATION;
+
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+     --data '{"schema": "{\"type\": \"record\", \"name\": \"Envelope\", \"namespace\": \"post_db_dev_server.public.post\", \"fields\": [{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"title\", \"type\": \"string\"}, {\"name\": \"message\", \"type\": \"string\"}]}"}' \
+     http://localhost:8081/subjects/post_db_dev_server.public.post.Envelope-value/versions
+

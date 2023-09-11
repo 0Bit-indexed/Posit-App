@@ -1,0 +1,156 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    restart: always
+    volumes:
+      - ./gateway/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - post-service
+      # - post-service1
+
+  post-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./post
+    container_name: post-service
+    # ports:
+    #   - "3001:3001"
+    restart: always
+    depends_on:
+      - "post-db"
+
+  # post-service1: 
+  #   build: 
+  #     dockerfile: Dockerfile
+  #     context: ./post
+  #   container_name: post-service1
+  #   # ports:
+  #   #   - "3001:3001"
+  #   restart: always
+  #   depends_on:
+  #     - "post-db"
+
+  # post-db:
+  #   image: postgres:latest
+  #   container_name: post-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: post_db
+  #   # ports:
+  #   #   - "5432:5432"
+  #   restart: always
+  #   volumes:
+  #     - post-postgres-data:/var/lib/postgresql/data
+
+  post-db:
+    image: debezium/postgres:13
+    container_name: post-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: post_db
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
+      LC_ALL: en_US.utf8
+      LANG: en_US.utf8
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - pg-post-data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.3
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    restart: always
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+
+  kafka:
+    image: confluentinc/cp-kafka:5.5.3
+    container_name: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # JMX_PORT: 9991
+    ports:
+      - "9092:9092"
+      # - "9991:9991"
+    restart: always
+    depends_on:
+      - zookeeper
+
+  
+  debezium:
+    image: debezium/connect:1.4
+    container_name: debezium
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: debezium_connector
+      CONFIG_STORAGE_TOPIC: _debezium_configs
+      OFFSET_STORAGE_TOPIC: _debezium_offsets
+      STATUS_STORAGE_TOPIC: _debezium_status
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+    ports:
+      - "8083:8083"
+    restart: always
+    depends_on:
+      - kafka
+      - schema-registry
+    volumes:
+      - ./post/src/config/debezium.json:/kafka/config.json:ro
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.3
+    container_name: schema-registry
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8081,http://localhost:8081
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+    ports:
+      - "8081:8081"
+    restart: always
+    depends_on:
+      - zookeeper
+      - kafka
+
+  user-post-cache:
+    image: redis:6.0.7
+    container_name: user-post-cache
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: post_db
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
+      LC_ALL: en_US.utf8
+      LANG: en_US.utf8
+    ports:
+      - "6379"
+    restart: always
+    volumes:
+      - redis-user-post-data:/data
+
+volumes:
+  # post-postgres-data:
+  pg-post-data:
+  zookeeper-data:
+  redis-user-post-data:

@@ -1,0 +1,12 @@
+version: '3'
+services:
+  post-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./post
+      args:
+        NODE_ENV: prod
+    env_file:
+      - ./post/.env.prod
+    command: npm start
+
