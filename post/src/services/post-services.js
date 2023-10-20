@@ -18,11 +18,12 @@ class PostService{
             post = cachedPost
             console.log("🚀 ~ file: post-services.js:17 ~ PostService ~ getPost ~ cachedPost:", cachedPost)
         }else{
-            //TODO: null check needed on existing post
             const existingPost = await this.repository.FindPostById(id);
             post = existingPost
-            console.log("🚀 ~ file: post-services.js:21 ~ PostService ~ getPost ~ existingPost:", existingPost)
-            await this.cache.CachePost(id, JSON.stringify(post))
+            if (Object.keys(post).length != 0) {
+                console.log("🚀 ~ file: post-services.js:21 ~ PostService ~ getPost ~ existingPost:", existingPost)
+                await this.cache.CachePost(id, JSON.stringify(post))
+            }
         }
 
         return post;

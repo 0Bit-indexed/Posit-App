@@ -44,3 +44,10 @@ curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
      --data '{"schema": "{\"type\": \"record\", \"name\": \"Envelope\", \"namespace\": \"post_db_dev_server.public.post\", \"fields\": [{\"name\": \"id\", \"type\": \"int\"}, {\"name\": \"title\", \"type\": \"string\"}, {\"name\": \"message\", \"type\": \"string\"}]}"}' \
      http://localhost:8081/subjects/post_db_dev_server.public.post.Envelope-value/versions
 
+
+
+# create dev docker containers from compose
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+# take down dev docker containers from compose
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml down

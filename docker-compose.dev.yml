@@ -13,6 +13,58 @@ services:
       - ./post/.env.dev
     command: npm run dev
 
+  gateway: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./gateway
+      args:
+        NODE_ENV: dev
+    volumes:
+      - ./:/app
+      - /app/gateway/node_modules
+    env_file:
+      - ./gateway/.env.dev
+    command: npm run dev
+
+  account-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./account
+      args:
+        NODE_ENV: dev
+    volumes:
+      - ./:/app
+      - /app/account/node_modules
+    env_file:
+      - ./account/.env.dev
+    command: npm run dev
+
+  social-graph-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./social-graph
+      args:
+        NODE_ENV: dev
+    volumes:
+      - ./:/app
+      - /app/social-graph/node_modules
+    env_file:
+      - ./social-graph/.env.dev
+    command: npm run dev
+
+  community-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./community
+      args:
+        NODE_ENV: dev
+    volumes:
+      - ./:/app
+      - /app/community/node_modules
+    env_file:
+      - ./community/.env.dev
+    command: npm run dev
+
   # post-service1: 
   #   build: 
   #     dockerfile: Dockerfile

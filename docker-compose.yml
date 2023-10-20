@@ -10,6 +10,9 @@ services:
       - ./gateway/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - post-service
+      - account-service
+      - social-graph-service
+      - community-service
       # - post-service1
 
   post-service: 
@@ -22,6 +25,51 @@ services:
     restart: always
     depends_on:
       - "post-db"
+# TODO: fix gateway dependencies 
+  gateway: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./gateway
+    container_name: gateway
+    ports:
+      - "3000:3000"
+    restart: always
+    depends_on:
+      - nginx    
+
+  account-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./account
+    container_name: account-service
+    # ports:
+    #   - "3003:3003"
+    restart: always
+    depends_on:
+      - "account-db"
+
+  social-graph-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./social-graph
+    container_name: social-graph-service
+    # ports:
+    #   - "3002:3002"
+    restart: always
+    depends_on:
+      - "social-graph-db"
+
+  community-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./community
+    container_name: community-service
+    # ports:
+    #   - "3004:3004"
+    restart: always
+    depends_on:
+      - "community-db"
+
 
   # post-service1: 
   #   build: 
@@ -62,7 +110,58 @@ services:
       - "5432"
     restart: always
     volumes:
-      - pg-post-data:/var/lib/postgresql/data
+      - pg-post-data_1:/var/lib/postgresql/data
+
+  account-db:
+    image: debezium/postgres:13
+    container_name: account-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: account_db
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
+      LC_ALL: en_US.utf8
+      LANG: en_US.utf8
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - pg-account-data_1:/var/lib/postgresql/data
+
+  social-graph-db:
+    image: debezium/postgres:13
+    container_name: social-graph-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: social-graph_db
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
+      LC_ALL: en_US.utf8
+      LANG: en_US.utf8
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - pg-social-graph-data_1:/var/lib/postgresql/data
+
+  community-db:
+    image: debezium/postgres:13
+    container_name: community-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: community_db
+      LC_COLLATE: en_US.utf8
+      LC_CTYPE: en_US.utf8
+      LC_ALL: en_US.utf8
+      LANG: en_US.utf8
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - pg-community-data_1:/var/lib/postgresql/data
 
   zookeeper:
     image: confluentinc/cp-zookeeper:5.5.3
@@ -73,7 +172,7 @@ services:
       - "2181:2181"
     restart: always
     volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-data_1:/var/lib/zookeeper/data
 
   kafka:
     image: confluentinc/cp-kafka:5.5.3
@@ -147,10 +246,13 @@ services:
       - "6379"
     restart: always
     volumes:
-      - redis-user-post-data:/data
+      - redis-user-post-data_1:/data
 
 volumes:
   # post-postgres-data:
-  pg-post-data:
-  zookeeper-data:
-  redis-user-post-data:
+  pg-post-data_1:
+  zookeeper-data_1:
+  redis-user-post-data_1:
+  pg-account-data_1:
+  pg-social-graph-data_1:
+  pg-community-data_1:

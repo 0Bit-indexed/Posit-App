@@ -14,7 +14,7 @@ class PostRepository{
     }
 
     async insertPost(post){
-        //Todo: should data validation be done at the service or repository layer?
+        //Todo: data validation be done at the repository layer! (bc multiple business functions call repository layer functions)
         //const { title, message } = post
         const postResult = await PostManipulation.insert(post)
         return postResult

@@ -10,3 +10,42 @@ services:
       - ./post/.env.prod
     command: npm start
 
+  gateway: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./gateway
+      args:
+        NODE_ENV: prod
+    env_file:
+      - ./gateway/.env.prod
+    command: npm starts
+
+  account-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./account
+      args:
+        NODE_ENV: prod
+    env_file:
+      - ./account/.env.prod
+    command: npm starts
+  
+  social-graph-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./social-graph
+      args:
+        NODE_ENV: prod
+    env_file:
+      - ./social-graph/.env.prod
+    command: npm starts
+
+  community-service: 
+    build: 
+      dockerfile: Dockerfile
+      context: ./community
+      args:
+        NODE_ENV: prod
+    env_file:
+      - ./community/.env.prod
+    command: npm starts    
